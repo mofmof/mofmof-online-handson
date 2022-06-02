@@ -112,7 +112,7 @@ function GhibliItem(props: Movie) {
         <Text>公開 {release_date}</Text>
       </View>
       {isBannerVisible && (
-        <View>
+        <View style={styles.itemMargin}>
           <Image source={{ uri: movie_banner }} style={styles.itemImage} />
         </View>
       )}
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   },
   itemImage: {
     width: "100%",
-    height: 160,
+    height: 200,
     resizeMode: "cover",
   },
   itemHeading: {
