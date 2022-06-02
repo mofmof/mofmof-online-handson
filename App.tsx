@@ -179,6 +179,8 @@ const styles = StyleSheet.create({
   item: {
     flex: 1,
     padding: 12,
+    borderBottomColor: '#DADADA',
+    borderBottomWidth: 1,
   },
   itemImage: {
     width: "100%",
