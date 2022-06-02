@@ -37,12 +37,16 @@ type Movie = {
   url: string;
   image: string;
   movie_banner: string;
-  isBannerVisible: boolean;
 };
+
+type ItemProp = {
+  isBannerVisible: boolean;
+  isShortDescription: boolean;
+} & Movie;
 
 type RootStackParamsList = {
   Home: undefined;
-  Detail: Movie;
+  Detail: ItemProp;
 };
 
 type HomeProps = NativeStackScreenProps<RootStackParamsList, "Home">;
@@ -72,11 +76,21 @@ function HomeScreen({ navigation }: HomeProps) {
           movies.map((movie: Movie, index: number) => {
             return (
               <TouchableOpacity
-                onPress={() => navigation.navigate("Detail", { ...movie })}
+                onPress={() =>
+                  navigation.navigate("Detail", {
+                    ...movie,
+                    isBannerVisible: true,
+                    isShortDescription: false,
+                  })
+                }
                 activeOpacity={1}
                 key={index}
               >
-                <GhibliItem {...movie} isBannerVisible={false} />
+                <GhibliItem
+                  {...movie}
+                  isBannerVisible={false}
+                  isShortDescription={true}
+                />
               </TouchableOpacity>
             );
           })}
@@ -85,7 +99,7 @@ function HomeScreen({ navigation }: HomeProps) {
   );
 }
 
-function GhibliItem(props: Movie) {
+function GhibliItem(props: ItemProp) {
   const {
     original_title,
     director,
@@ -94,7 +108,11 @@ function GhibliItem(props: Movie) {
     image,
     movie_banner,
     isBannerVisible,
+    isShortDescription,
   } = props;
+  const fixedDescription = isShortDescription
+    ? `${description.slice(0, 100)} ...`
+    : description;
 
   return (
     <View style={styles.item}>
@@ -106,7 +124,7 @@ function GhibliItem(props: Movie) {
         <Text>監督 {director}</Text>
       </View>
       <View style={styles.itemMargin}>
-        <Text>{description}</Text>
+        <Text>{fixedDescription}</Text>
       </View>
       <View style={styles.itemMargin}>
         <Text>公開 {release_date}</Text>
@@ -126,7 +144,7 @@ function Detail() {
   return (
     <SafeAreaView style={styles.safeAreaViewContainer}>
       <ScrollView>
-        <GhibliItem {...route.params} isBannerVisible={true} />
+        <GhibliItem {...route.params} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,7 +197,7 @@ const styles = StyleSheet.create({
   item: {
     flex: 1,
     padding: 12,
-    borderBottomColor: '#DADADA',
+    borderBottomColor: "#DADADA",
     borderBottomWidth: 1,
   },
   itemImage: {
