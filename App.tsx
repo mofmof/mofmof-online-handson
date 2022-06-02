@@ -1,35 +1,83 @@
 import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { SafeAreaView, StyleSheet, Text, View, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  ScrollView,
+} from "react-native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-const japaneseLorem =
-  "それは今朝ちょうどその矛盾らという事のためが落ちつけただろ。やはり今日で真似家は向後そうした失敗なかったじゃがおくてならたには発展解らたまいと、ちょっとには生れたなけれありなけれ。先をしで事はまあ当時がけっしてましだた。";
+type movie = {
+  id: string;
+  title: string;
+  original_title: string;
+  original_title_romanised: string;
+  description: string;
+  director: string;
+  producer: string;
+  release_date: string;
+  running_time: string;
+  rt_score: string;
+  people: string[];
+  species: string[];
+  locations: string[];
+  vehicles: string[];
+  url: string;
+  image: string;
+};
 
-function GhibliItem() {
+function HomeScreen() {
+  const [movies, setMovies] = useState<movie[]>([]);
+
+  async function getMovies() {
+    try {
+      const response = await fetch("https://ghibliapi.herokuapp.com/films");
+      const json: movie[] = await response.json();
+      setMovies(json);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  useEffect(() => {
+    getMovies();
+  }, []);
+
   return (
-    <View style={styles.item}>
-      <Image source={require("./assets/splash.png")} style={styles.itemImage} />
-      <View style={{ ...styles.itemHeading, ...styles.itemMargin }}>
-        <Text style={{ fontWeight: "bold", fontSize: 20 }}>隣のトトロ</Text>
-        <Text>監督 Hayao Miyazaki</Text>
-      </View>
-      <View style={styles.itemMargin}>
-        <Text>{japaneseLorem}</Text>
-      </View>
-      <View style={styles.itemMargin}>
-        <Text>公開 1988</Text>
-      </View>
-    </View>
+    <SafeAreaView style={styles.safeAreaViewContainer}>
+      <ScrollView>
+        {Boolean(movies.length) &&
+          movies.map((movie: movie) => {
+            return <GhibliItem {...movie} />;
+          })}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-function HomeScreen() {
+function GhibliItem(props: movie) {
+  const { original_title, director, description, release_date, image } = props;
+
   return (
-    <SafeAreaView style={styles.safeAreaViewContainer}>
-      <GhibliItem />
-    </SafeAreaView>
+    <View style={styles.item}>
+      <Image source={{ uri: image }} style={styles.itemImage} />
+      <View style={{ ...styles.itemHeading, ...styles.itemMargin }}>
+        <Text style={{ fontWeight: "bold", fontSize: 20 }}>
+          {original_title}
+        </Text>
+        <Text>監督 {director}</Text>
+      </View>
+      <View style={styles.itemMargin}>
+        <Text>{description}</Text>
+      </View>
+      <View style={styles.itemMargin}>
+        <Text>公開 {release_date}</Text>
+      </View>
+    </View>
   );
 }
 
