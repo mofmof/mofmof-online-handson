@@ -1,5 +1,9 @@
-import { DefaultTheme, NavigationContainer } from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
+import {
+  DefaultTheme,
+  NavigationContainer,
+  RouteProp,
+  useRoute,
+} from "@react-navigation/native";
 import React, { useEffect, useState } from "react";
 import {
   SafeAreaView,
@@ -8,10 +12,14 @@ import {
   View,
   Image,
   ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import {
+  createNativeStackNavigator,
+  NativeStackScreenProps,
+} from "@react-navigation/native-stack";
 
-type movie = {
+type Movie = {
   id: string;
   title: string;
   original_title: string;
@@ -28,15 +36,25 @@ type movie = {
   vehicles: string[];
   url: string;
   image: string;
+  movie_banner: string;
+  isBannerVisible: boolean;
 };
 
-function HomeScreen() {
-  const [movies, setMovies] = useState<movie[]>([]);
+type RootStackParamsList = {
+  Home: undefined;
+  Detail: Movie;
+};
+
+type HomeProps = NativeStackScreenProps<RootStackParamsList, "Home">;
+type DetailProps = NativeStackScreenProps<RootStackParamsList, "Detail">;
+
+function HomeScreen({ navigation }: HomeProps) {
+  const [movies, setMovies] = useState<Movie[]>([]);
 
   async function getMovies() {
     try {
       const response = await fetch("https://ghibliapi.herokuapp.com/films");
-      const json: movie[] = await response.json();
+      const json: Movie[] = await response.json();
       setMovies(json);
     } catch (error) {
       console.error(error);
@@ -51,16 +69,32 @@ function HomeScreen() {
     <SafeAreaView style={styles.safeAreaViewContainer}>
       <ScrollView>
         {Boolean(movies.length) &&
-          movies.map((movie: movie) => {
-            return <GhibliItem {...movie} />;
+          movies.map((movie: Movie, index: number) => {
+            return (
+              <TouchableOpacity
+                onPress={() => navigation.navigate("Detail", { ...movie })}
+                activeOpacity={1}
+                key={index}
+              >
+                <GhibliItem {...movie} isBannerVisible={false} />
+              </TouchableOpacity>
+            );
           })}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function GhibliItem(props: movie) {
-  const { original_title, director, description, release_date, image } = props;
+function GhibliItem(props: Movie) {
+  const {
+    original_title,
+    director,
+    description,
+    release_date,
+    image,
+    movie_banner,
+    isBannerVisible,
+  } = props;
 
   return (
     <View style={styles.item}>
@@ -77,11 +111,28 @@ function GhibliItem(props: movie) {
       <View style={styles.itemMargin}>
         <Text>公開 {release_date}</Text>
       </View>
+      {isBannerVisible && (
+        <View>
+          <Image source={{ uri: movie_banner }} style={styles.itemImage} />
+        </View>
+      )}
     </View>
   );
 }
 
-const Stack = createNativeStackNavigator();
+function Detail() {
+  const route = useRoute<DetailProps["route"]>();
+
+  return (
+    <SafeAreaView style={styles.safeAreaViewContainer}>
+      <ScrollView>
+        <GhibliItem {...route.params} isBannerVisible={true} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const Stack = createNativeStackNavigator<RootStackParamsList>();
 const MyTheme = {
   ...DefaultTheme,
   colors: {
@@ -104,6 +155,17 @@ export default function App() {
             },
             headerTintColor: "#fefefe",
           }}
+        />
+        <Stack.Screen
+          name="Detail"
+          component={Detail}
+          options={({ route }) => ({
+            title: route.params.original_title,
+            headerStyle: {
+              backgroundColor: "#029AAA",
+            },
+            headerTintColor: "#fefefe",
+          })}
         />
       </Stack.Navigator>
     </NavigationContainer>
